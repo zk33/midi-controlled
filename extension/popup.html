@@ -1,0 +1,44 @@
+<html>
+
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="vue.min.js"></script>
+<script src="popup.js"></script>
+
+<style>
+textarea{ width:100%; box-sizing:border-box; height:100px; }
+</style>
+
+</head>
+
+<body style="width: 320px">
+<div id="base">
+
+<p class="message">{{message}}</p>
+
+<div id="main">
+<div class="x-host"></div>
+
+<div class="field">
+<label>device:<input type="text" v-model="deviceId" readonly><input type="text" v-model="deviceName" readonly>
+</label>
+</div>
+
+<div class="field">
+<label>note:<input type="text" v-model="midiData" readonly>
+</label>
+</div>
+
+<div class="field">
+<label>action(JS):
+<textarea v-model="script"></textarea>
+</label>
+</div>
+
+<button>save</button>
+
+</div><!-- #main -->
+
+</div><!-- #base -->
+</body>
+</html>
