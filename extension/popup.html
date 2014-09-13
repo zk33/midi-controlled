@@ -3,6 +3,7 @@
 <head>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="vue.min.js"></script>
+<script src="shared.js"></script>
 <script src="popup.js"></script>
 
 <style>
@@ -20,12 +21,17 @@ textarea{ width:100%; box-sizing:border-box; height:100px; }
 <div class="x-host"></div>
 
 <div class="field">
+domain:
+<label v-repeat="domainKeys"><input v-model="domainKey" type="radio" value="{{$value}}" name="domain"> {{$value}}</label>
+</div>
+
+<div class="field">
 <label>device:<input type="text" v-model="deviceId" readonly><input type="text" v-model="deviceName" readonly>
 </label>
 </div>
 
 <div class="field">
-<label>note:<input type="text" v-model="midiData" readonly>
+<label>note:<input type="text" v-model="note" readonly>
 </label>
 </div>
 
@@ -34,8 +40,11 @@ textarea{ width:100%; box-sizing:border-box; height:100px; }
 <textarea v-model="script"></textarea>
 </label>
 </div>
+<div class="field">
+<label>Setting name: <input type="text" v-model="displayName"> </label>
+</div>
 
-<button>save</button>
+<button v-on="click:save">save</button>
 
 </div><!-- #main -->
 
