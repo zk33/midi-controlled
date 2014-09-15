@@ -1,49 +1,78 @@
-var midi,vm;
+var midi,onMidi;
+var vm = {};
 var settings = {};
 var domainKeys = [];
 var storage = chrome.storage.sync;
 
 
-function connect(fail){
-  if(!navigator.requestMIDIAccess){
-    fail();
-    return;
-  }
-  navigator.requestMIDIAccess().then(function(access){
-    vm.message = '';
-    midi = access;
-    initialize();
-  },fail);
+function connect(){
+  return new Promise(function(resolve,reject){
+    if(!navigator.requestMIDIAccess){
+      reject(new Error('Please enable Web MIDI API via chrome://flags'));
+    }
+    navigator.requestMIDIAccess().then(function(access){
+      vm.message = '';
+      midi = access;
+      resolve();
+    },reject);
+  });
 }
 
-function initialize(){
-  settings = {};
-  domainKeys = [];
-  // init midi input
-  initializeMidiInput();
-  chrome.tabs.query({active:true},function(tabs){
-    var currentUrl = tabs[0].url;
-    var currentDomainArr = currentUrl.split('//')[1].split('/')[0].split(':')[0].split('.');
-    // get data from storage 
-    while(true){
-      domainKeys.push(currentDomainArr.join('.'));
-      currentDomainArr.shift();
-      if(currentDomainArr.length < 1){
-        break;
+
+function initDomainKeys(){
+  return new Promise(function(resolve,reject){
+    chrome.tabs.query({active:true},function(tabs){
+      if(tabs.length){
+        var currentUrl = tabs[0].url;
+        makeDomainKey(currentUrl);
+        resolve(domainKeys);
+      }else{
+        reject(new Error("Couldn't get active tab"));
       }
+    });
+  });
+}
+function initDomainKeysByLocation(){
+  return new Promise(function(resolve,reject){
+    if(location.href){
+      makeDomainKey(location.href);
+      resolve(domainKeys);
+    }else{
+      reject(new Error("Couldn't get location.href"));
     }
+  });
+}
+function makeDomainKey(url){
+  domainKeys = [];
+  var currentDomainArr = url.split('//')[1].split('/')[0].split(':')[0].split('.');
+  // get data from storage 
+  while(true){
+    domainKeys.push(currentDomainArr.join('.'));
+    currentDomainArr.shift();
+    if(currentDomainArr.length < 1){
+      break;
+    }
+  }
+  return domainKeys;
+}
+function initSettings(){
+  return new Promise(function(resolve,reject){
     storage.get(domainKeys,function(data){
+      if(chrome.runtime.lastError){
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
       settings = vm.settings = data;
-      console.log(data);
       vm.domainKeys = domainKeys;
       setTimeout(function(){
         vm.domainKey = domainKeys[0];
+        resolve(settings);
       },100);
     });
   });
 }
 
-function initializeMidiInput(){
+function initMidiInput(){
   var inputs = midi.inputs();
   if(inputs){
     for(var i=0,len=inputs.length;i<len;i++){
@@ -52,15 +81,6 @@ function initializeMidiInput(){
   }
 }
 
-function onMidi(e){
-  var targ = e.currentTarget;
-  vm.deviceId = targ.id;
-  vm.deviceName = targ.name;
-  var data = e.data;
-  if(data[0]==144){
-    vm.note = data[1];
-  }
-}
 
 function saveData(key,data){
   var idx = findData(key,data);

@@ -1,5 +1,15 @@
 $(function(){
 
+onMidi = function(e){
+  var targ = e.currentTarget;
+  vm.deviceId = targ.id;
+  vm.deviceName = targ.name;
+  var data = e.data;
+  if(data[0]==144){
+    vm.note = data[1];
+  }
+}
+
 //initialize
 vm = new Vue({
   el: '#base',
@@ -15,11 +25,15 @@ vm = new Vue({
   },
   ready: function(){
     var that = this;
-    var fail = function(){
-      that.message = 'Please enable Web MIDI API via chrome://flags'; 
+    var fail = function(err){
+      that.message = err.description; 
       $('#main').hide();
     }
-    connect(fail);
+    connect()
+      .then(initDomainKeys)
+      .then(initSettings)
+      .then(initMidiInput)
+      .catch(fail);
   },
   methods:{
     save: function(){
