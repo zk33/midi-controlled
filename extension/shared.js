@@ -73,10 +73,15 @@ function initSettings(){
 }
 
 function initMidiInput(){
-  var inputs = midi.inputs();
+  var inputs = midi.inputs;
   if(inputs){
-    for(var i=0,len=inputs.length;i<len;i++){
-      inputs[i].onmidimessage=onMidi;
+    var entries = inputs.entries();
+    while(true){
+      var entry = entries.next();
+      if(!entry || entry.done){
+        break;
+      }
+      entry.value[1].onmidimessage=onMidi;
     }
   }
 }
